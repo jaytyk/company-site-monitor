@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Monitor Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@0.344.0/font/lucide.min.css">
+</head>
+<body class="dark-theme">
+    <header class="app-header">
+        <div class="logo-area">
+            <i class="lucide-activity text-accent"></i>
+            <h1>Site Monitor</h1>
+        </div>
+        <div class="header-actions">
+            <button id="refresh-btn" class="btn-icon" title="새로고침">
+                <i class="lucide-rotate-cw"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>실행 이력</h2>
+            </div>
+            <div id="history-list" class="history-list">
+                <!-- History items will be injected here -->
+                <div class="loading-spinner">데이터 로딩 중...</div>
+            </div>
+        </aside>
+
+        <section class="main-content">
+            <div id="detail-view" class="detail-view hidden">
+                <div class="detail-header">
+                    <div class="run-info">
+                        <h2 id="detail-run-id">실행 ID</h2>
+                        <span id="detail-timestamp" class="timestamp">시간</span>
+                    </div>
+                    <div class="summary-cards">
+                        <div class="card total">
+                            <span class="label">전체</span>
+                            <span id="summary-total" class="value">0</span>
+                        </div>
+                        <div class="card success">
+                            <span class="label">성공</span>
+                            <span id="summary-success" class="value">0</span>
+                        </div>
+                        <div class="card fail">
+                            <span class="label">실패</span>
+                            <span id="summary-fail" class="value">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filters">
+                    <div class="search-box">
+                        <i class="lucide-search"></i>
+                        <input type="text" id="site-search" placeholder="사이트 검색...">
+                    </div>
+                    <div class="filter-options">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="fail-only">
+                            <span class="checkmark"></span>
+                            실패만 보기
+                        </label>
+                    </div>
+                </div>
+
+                <div id="results-grid" class="results-grid">
+                    <!-- Results will be injected here -->
+                </div>
+            </div>
+
+            <div id="empty-state" class="empty-state">
+                <i class="lucide-monitor-off"></i>
+                <p>실행 이력을 선택하여 상세 결과를 확인하세요.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for screenshot -->
+    <div id="screenshot-modal" class="modal">
+        <span class="close-modal">&times;</span>
+        <img class="modal-content" id="modal-img">
+        <div id="modal-caption"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

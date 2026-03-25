@@ -1,0 +1,5 @@
+{
+  "name": "Site Monitor Service",
+  "description": "A comprehensive website monitoring system using GitHub Actions and Playwright with a built-in dashboard.",
+  "requestFramePermissions": []
+}
