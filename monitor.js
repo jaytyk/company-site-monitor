@@ -27,7 +27,23 @@ async function runMonitor() {
   await fs.ensureDir(screenshotsDir);
 
   // Read sites to monitor
-  const sites = await fs.readJson(path.join(__dirname, 'sites.json'));
+  const sitesPath = path.join(__dirname, 'sites.json');
+  let config;
+  try {
+    config = await fs.readJson(sitesPath);
+  } catch (e) {
+    throw new Error(`Failed to read sites.json: ${e.message}`);
+  }
+
+  // Handle both array-only and object-with-settings structures
+  const sites = Array.isArray(config) ? config : config.sites;
+  const settings = Array.isArray(config) ? {} : (config.settings || {});
+
+  if (!Array.isArray(sites)) {
+    console.error('Debug: config content:', config);
+    throw new Error(`sites.json must contain a "sites" array. Please check the file format.`);
+  }
+
   const results = {
     runId,
     timestamp,
@@ -43,40 +59,50 @@ async function runMonitor() {
 
   const browser = await chromium.launch();
   const context = await browser.newContext({
-    viewport: { width: 1280, height: 720 }
+    viewport: settings.viewport || { width: 1280, height: 720 }
   });
 
-  for (const site of sites) {
-    const page = await context.newPage();
-    console.log(`Monitoring: ${site.name} (${site.url})`);
-    
-    const item = {
-      name: site.name,
-      url: site.url,
-      status: 'OK',
-      error: null,
-      screenshot: null
-    };
+  const timeoutMs = settings.timeoutMs || 45000;
+  const concurrency = settings.concurrency || 1;
 
-    try {
-      // Navigate with 45s timeout
-      await page.goto(site.url, { waitUntil: 'networkidle', timeout: 45000 });
+  // Process sites with concurrency control
+  for (let i = 0; i < sites.length; i += concurrency) {
+    const chunk = sites.slice(i, i + concurrency);
+    await Promise.all(chunk.map(async (site) => {
+      const page = await context.newPage();
+      console.log(`Monitoring: ${site.name} (${site.url})`);
       
-      // Capture screenshot
-      const screenshotPath = `screenshots/${runId}/${site.name.replace(/\s+/g, '_')}.png`;
-      await page.screenshot({ path: path.join(__dirname, screenshotPath) });
-      item.screenshot = screenshotPath;
-      
-      results.summary.success++;
-    } catch (error) {
-      console.error(`Failed to monitor ${site.name}: ${error.message}`);
-      item.status = 'FAIL';
-      item.error = error.message;
-      results.summary.fail++;
-    } finally {
-      results.items.push(item);
-      await page.close();
-    }
+      const item = {
+        name: site.name,
+        url: site.url,
+        status: 'OK',
+        error: null,
+        screenshot: null
+      };
+
+      try {
+        // Navigate with configured timeout
+        await page.goto(site.url, { 
+          waitUntil: site.waitUntil || 'networkidle', 
+          timeout: timeoutMs 
+        });
+        
+        // Capture screenshot
+        const screenshotPath = `screenshots/${runId}/${site.name.replace(/\s+/g, '_')}.png`;
+        await page.screenshot({ path: path.join(__dirname, screenshotPath) });
+        item.screenshot = screenshotPath;
+        
+        results.summary.success++;
+      } catch (error) {
+        console.error(`Failed to monitor ${site.name}: ${error.message}`);
+        item.status = 'FAIL';
+        item.error = error.message;
+        results.summary.fail++;
+      } finally {
+        results.items.push(item);
+        await page.close();
+      }
+    }));
   }
 
   await browser.close();
@@ -96,8 +122,10 @@ async function runMonitor() {
     timestamp,
     summary: results.summary
   });
-  // Keep last 50 runs
-  await fs.writeJson(indexPath, index.slice(0, 50), { spaces: 2 });
+  
+  // Keep configured number of runs or default to 50
+  const retention = settings.retentionRuns || 50;
+  await fs.writeJson(indexPath, index.slice(0, retention), { spaces: 2 });
 
   console.log(`Monitor run complete. Success: ${results.summary.success}, Fail: ${results.summary.fail}`);
 
