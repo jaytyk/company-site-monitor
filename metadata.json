@@ -1,5 +1,5 @@
 {
   "name": "Site Monitor Service",
-  "description": "A comprehensive website monitoring system using GitHub Actions and Playwright with a built-in dashboard.",
+  "description": "A professional homelab-style dashboard for website monitoring using GitHub Actions and Playwright.",
   "requestFramePermissions": []
 }

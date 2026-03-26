@@ -1,0 +1,109 @@
+{
+  "runId": "20260326_030000",
+  "timestamp": "2026-03-26T03:00:00.000Z",
+  "summary": {
+    "total": 14,
+    "success": 12,
+    "fail": 2
+  },
+  "items": [
+    {
+      "name": "NYPC",
+      "url": "https://www.nypc.co.kr",
+      "status": "OK",
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "name": "NDC",
+      "url": "https://ndc.nexon.com",
+      "status": "OK",
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "name": "Nexon IP",
+      "url": "https://ip.nexon.com",
+      "status": "FAIL",
+      "error": "TimeoutError: navigation to \"https://ip.nexon.com\" failed: timeout 100000ms exceeded",
+      "screenshot": null
+    },
+    {
+      "name": "Nexon HQ",
+      "url": "https://www.nexon-hq.com/",
+      "status": "OK",
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "name": "select all",
+      "url": "https://www.selectall.global/ko/about",
+      "status": "OK",
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "name": "Nexon Space",
+      "url": "https://nexonspace.co.kr",
+      "status": "OK",
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "name": "Nexon Computer Museum",
+      "url": "https://computermuseum.nexon.com",
+      "status": "OK",
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "name": "Nexon Hero",
+      "url": "https://www.nexonfoundation.org/nexonhero",
+      "status": "OK",
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "name": "Nexon Company",
+      "url": "https://company.nexon.com/ko/",
+      "status": "OK",
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "name": "Nexon Blog",
+      "url": "https://blog.nexon.com/",
+      "status": "OK",
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "name": "Nexon Networks",
+      "url": "https://nexon-networks.com/",
+      "status": "OK",
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "name": "Nexon Pressroom",
+      "url": "https://pressroom.nexon.com/",
+      "status": "FAIL",
+      "error": "Error: net::ERR_CONNECTION_REFUSED at https://pressroom.nexon.com/",
+      "screenshot": null
+    },
+    {
+      "name": "Nexon Brand",
+      "url": "https://brand.nexon.com/",
+      "status": "OK",
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "name": "Nexon Foundation",
+      "url": "https://www.nexonfoundation.org/",
+      "status": "OK",
+      "error": null,
+      "screenshot": null
+    }
+  ]
+}

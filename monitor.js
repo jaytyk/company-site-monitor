@@ -15,8 +15,9 @@ const __dirname = path.dirname(__filename);
 
 /**
  * Main monitoring function
+ * @param {string|null} targetSiteName - Optional site name to monitor only one site
  */
-async function runMonitor() {
+export async function runMonitor(targetSiteName = null) {
   const runId = dayjs().format('YYYYMMDD_HHmmss');
   const timestamp = dayjs().toISOString();
   const reportsDir = path.join(__dirname, 'reports');
@@ -36,12 +37,20 @@ async function runMonitor() {
   }
 
   // Handle both array-only and object-with-settings structures
-  const sites = Array.isArray(config) ? config : config.sites;
+  let sites = Array.isArray(config) ? config : config.sites;
   const settings = Array.isArray(config) ? {} : (config.settings || {});
 
   if (!Array.isArray(sites)) {
     console.error('Debug: config content:', config);
     throw new Error(`sites.json must contain a "sites" array. Please check the file format.`);
+  }
+
+  // Filter if targetSiteName is provided
+  if (targetSiteName) {
+    sites = sites.filter(s => s.name === targetSiteName);
+    if (sites.length === 0) {
+      throw new Error(`Site "${targetSiteName}" not found in config.`);
+    }
   }
 
   const results = {
@@ -55,7 +64,7 @@ async function runMonitor() {
     items: []
   };
 
-  console.log(`Starting monitor run: ${runId}`);
+  console.log(`Starting monitor run: ${runId} ${targetSiteName ? `(Target: ${targetSiteName})` : ''}`);
 
   const browser = await chromium.launch();
   const context = await browser.newContext({
@@ -126,6 +135,8 @@ async function runMonitor() {
 
   // Send notifications
   await sendNotifications(results);
+  
+  return results;
 }
 
 /**
@@ -174,7 +185,10 @@ async function sendNotifications(results) {
   }
 }
 
-runMonitor().catch(err => {
-  console.error('Fatal error in monitor:', err);
-  process.exit(1);
-});
+// Run if called directly from CLI
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  runMonitor().catch(err => {
+    console.error('Fatal error in monitor:', err);
+    process.exit(1);
+  });
+}

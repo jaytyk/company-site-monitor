@@ -1,8 +1,9 @@
 name: Site Monitor
 
+# on:
+#   schedule:
+#     - cron: '0 * * * *' # 매시간 정각 실행
 on:
-  schedule:
-    - cron: '0 * * * *' # 매시간 정각 실행
   workflow_dispatch: # 수동 실행 버튼 활성화
 
 # 저장소에 쓰기 권한을 명시적으로 부여합니다.
