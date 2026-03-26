@@ -46,7 +46,7 @@ export async function runMonitor(targetSiteName = null) {
   }
 
   // Filter if targetSiteName is provided
-  if (targetSiteName) {
+  if (targetSiteName && targetSiteName !== 'All') {
     sites = sites.filter(s => s.name === targetSiteName);
     if (sites.length === 0) {
       throw new Error(`Site "${targetSiteName}" not found in config.`);
@@ -187,7 +187,8 @@ async function sendNotifications(results) {
 
 // Run if called directly from CLI
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  runMonitor().catch(err => {
+  const targetSite = process.argv[2];
+  runMonitor(targetSite).catch(err => {
     console.error('Fatal error in monitor:', err);
     process.exit(1);
   });

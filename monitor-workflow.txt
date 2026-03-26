@@ -5,6 +5,28 @@ name: Site Monitor
 #     - cron: '0 * * * *' # 매시간 정각 실행
 on:
   workflow_dispatch: # 수동 실행 버튼 활성화
+    inputs:
+      site_name:
+        description: '모니터링할 사이트 선택'
+        required: true
+        default: 'All'
+        type: choice
+        options:
+          - 'All'
+          - 'NYPC'
+          - 'NDC'
+          - 'Nexon IP'
+          - 'Nexon HQ'
+          - 'select all'
+          - 'Nexon Space'
+          - 'Nexon Computer Museum'
+          - 'Nexon Hero'
+          - 'Nexon Company'
+          - 'Nexon Blog'
+          - 'Nexon Networks'
+          - 'Nexon Pressroom'
+          - 'Nexon Brand'
+          - 'Nexon Foundation'
 
 # 저장소에 쓰기 권한을 명시적으로 부여합니다.
 permissions:
@@ -32,7 +54,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run Monitor
-        run: node monitor.js
+        run: node monitor.js "${{ github.event.inputs.site_name }}"
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
