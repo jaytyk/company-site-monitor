@@ -122,7 +122,6 @@ async function runMonitor() {
     timestamp,
     summary: results.summary
   });
-  
   // Keep configured number of runs or default to 50
   const retention = settings.retentionRuns || 50;
   await fs.writeJson(indexPath, index.slice(0, retention), { spaces: 2 });
