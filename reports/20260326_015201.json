@@ -1,0 +1,32 @@
+{
+  "runId": "20260326_015201",
+  "timestamp": "2026-03-26T01:52:01.794Z",
+  "summary": {
+    "total": 3,
+    "success": 2,
+    "fail": 1
+  },
+  "items": [
+    {
+      "name": "Google",
+      "url": "https://www.google.com",
+      "status": "OK",
+      "error": null,
+      "screenshot": "screenshots/20260326_015201/Google.png"
+    },
+    {
+      "name": "GitHub",
+      "url": "https://github.com",
+      "status": "OK",
+      "error": null,
+      "screenshot": "screenshots/20260326_015201/GitHub.png"
+    },
+    {
+      "name": "AI Studio",
+      "url": "https://aistudio.google.com",
+      "status": "FAIL",
+      "error": "page.goto: Timeout 45000ms exceeded.\nCall log:\n  - navigating to \"https://aistudio.google.com/\", waiting until \"networkidle\"\n",
+      "screenshot": null
+    }
+  ]
+}
