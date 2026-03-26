@@ -2,8 +2,12 @@ name: Site Monitor
 
 on:
   schedule:
-    - cron: '0 * * * *' # Every hour
-  workflow_dispatch: # Manual trigger
+    - cron: '0 * * * *' # 매시간 정각 실행
+  workflow_dispatch: # 수동 실행 버튼 활성화
+
+# 저장소에 쓰기 권한을 명시적으로 부여합니다.
+permissions:
+  contents: write
 
 jobs:
   monitor:
@@ -11,11 +15,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 전체 이력을 가져와서 충돌 방지
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm install
@@ -33,6 +40,16 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 새 파일들을 스테이징에 추가
           git add reports/ screenshots/
-          git commit -m "chore: update monitoring reports [skip ci]" || echo "No changes to commit"
-          git push
+          
+          # 변경사항이 있을 때만 커밋 및 푸시
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update monitoring reports [skip ci]"
+            # 다른 작업과 충돌을 방지하기 위해 pull 후 push
+            git pull --rebase origin main
+            git push origin main
+          else
+            echo "No changes to commit"
+          fi

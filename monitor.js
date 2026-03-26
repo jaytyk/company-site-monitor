@@ -63,47 +63,43 @@ async function runMonitor() {
   });
 
   const timeoutMs = settings.timeoutMs || 45000;
-  const concurrency = settings.concurrency || 1;
 
-  // Process sites with concurrency control
-  for (let i = 0; i < sites.length; i += concurrency) {
-    const chunk = sites.slice(i, i + concurrency);
-    await Promise.all(chunk.map(async (site) => {
-      const page = await context.newPage();
-      console.log(`Monitoring: ${site.name} (${site.url})`);
+  // Process all sites in parallel simultaneously
+  await Promise.all(sites.map(async (site) => {
+    const page = await context.newPage();
+    console.log(`Monitoring: ${site.name} (${site.url})`);
+    
+    const item = {
+      name: site.name,
+      url: site.url,
+      status: 'OK',
+      error: null,
+      screenshot: null
+    };
+
+    try {
+      // Navigate with configured timeout
+      await page.goto(site.url, { 
+        waitUntil: site.waitUntil || 'networkidle', 
+        timeout: timeoutMs 
+      });
       
-      const item = {
-        name: site.name,
-        url: site.url,
-        status: 'OK',
-        error: null,
-        screenshot: null
-      };
-
-      try {
-        // Navigate with configured timeout
-        await page.goto(site.url, { 
-          waitUntil: site.waitUntil || 'networkidle', 
-          timeout: timeoutMs 
-        });
-        
-        // Capture screenshot
-        const screenshotPath = `screenshots/${runId}/${site.name.replace(/\s+/g, '_')}.png`;
-        await page.screenshot({ path: path.join(__dirname, screenshotPath) });
-        item.screenshot = screenshotPath;
-        
-        results.summary.success++;
-      } catch (error) {
-        console.error(`Failed to monitor ${site.name}: ${error.message}`);
-        item.status = 'FAIL';
-        item.error = error.message;
-        results.summary.fail++;
-      } finally {
-        results.items.push(item);
-        await page.close();
-      }
-    }));
-  }
+      // Capture screenshot
+      const screenshotPath = `screenshots/${runId}/${site.name.replace(/\s+/g, '_')}.png`;
+      await page.screenshot({ path: path.join(__dirname, screenshotPath) });
+      item.screenshot = screenshotPath;
+      
+      results.summary.success++;
+    } catch (error) {
+      console.error(`Failed to monitor ${site.name}: ${error.message}`);
+      item.status = 'FAIL';
+      item.error = error.message;
+      results.summary.fail++;
+    } finally {
+      results.items.push(item);
+      await page.close();
+    }
+  }));
 
   await browser.close();
 

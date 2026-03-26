@@ -1,14 +1,80 @@
-[
-  {
-    "name": "Google",
-    "url": "https://www.google.com"
+{
+  "settings": {
+    "concurrency": 3,
+    "timeoutMs": 100000,
+    "retentionRuns": 200,
+    "viewport": { "width": 1366, "height": 768 }
   },
-  {
-    "name": "GitHub",
-    "url": "https://github.com"
-  },
-  {
-    "name": "AI Studio",
-    "url": "https://aistudio.google.com"
-  }
-]
+  "sites": [
+    {
+      "name": "NYPC",
+      "url": "https://www.nypc.co.kr",
+      "waitUntil": "networkidle"
+    },
+    {
+      "name": "NDC",
+      "url": "https://ndc.nexon.com",
+      "waitUntil": "networkidle"
+    },
+    {
+      "name": "Nexon IP",
+      "url": "https://ip.nexon.com",
+      "waitUntil": "networkidle"
+    },
+    {
+      "name": "Nexon HQ",
+      "url": "https://www.nexon-hq.com/",
+      "waitUntil": "networkidle"
+    },
+    {
+      "name": "select all",
+      "url": "https://www.selectall.global/ko/about",
+      "waitUntil": "networkidle"
+    },
+    {
+      "name": "Nexon Space",
+      "url": "https://nexonspace.co.kr",
+      "waitUntil": "networkidle"
+    },
+    {
+      "name": "Nexon Computer Museum",
+      "url": "https://computermuseum.nexon.com",
+      "waitUntil": "networkidle"
+    },
+    {
+      "name": "Nexon Hero",
+      "url": "https://www.nexonfoundation.org/nexonhero",
+      "waitUntil": "networkidle"
+    },
+    {
+      "name": "Nexon Company",
+      "url": "https://company.nexon.com/ko/",
+      "waitUntil": "networkidle"
+    },
+    {
+      "name": "Nexon Blog",
+      "url": "https://blog.nexon.com/",
+      "waitUntil": "networkidle"
+    },
+    {
+      "name": "Nexon Networks",
+      "url": "https://nexon-networks.com/",
+      "waitUntil": "networkidle"
+    },
+    {
+      "name": "Nexon Pressroom",
+      "url": "https://pressroom.nexon.com/",
+      "waitUntil": "networkidle"
+    },
+    {
+      "name": "Nexon Brand",
+      "url": "https://brand.nexon.com/",
+      "waitUntil": "networkidle"
+    },
+    {
+      "name": "Nexon Foundation",
+      "url": "https://www.nexonfoundation.org/",
+      "waitUntil": "networkidle"
+    }
+  ]
+}
