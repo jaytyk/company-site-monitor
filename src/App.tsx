@@ -70,6 +70,7 @@ export default function App() {
   const [currentTime, setCurrentTime] = useState(dayjs());
   const [selectedSite, setSelectedSite] = useState<SiteItem | null>(null);
   const [isMonitoring, setIsMonitoring] = useState(false);
+  const isStaticSite = window.location.hostname.includes('github.io');
 
   // Update clock every second
   useEffect(() => {
@@ -80,31 +81,29 @@ export default function App() {
   const fetchData = async (showLoading = true) => {
     try {
       if (showLoading) setLoading(true);
-      // Try static path first as it works on both Cloud Run and GitHub Pages
-      const indexRes = await fetch('/reports/index.json');
+      
+      // Determine the best URL based on environment to avoid unnecessary 404s
+      const indexUrl = isStaticSite ? '/reports/index.json' : '/api/reports/index';
+      
+      const indexRes = await fetch(indexUrl);
       if (!indexRes.ok) {
-        // Fallback to API if static fails
-        const apiRes = await fetch('/api/reports/index');
-        if (!apiRes.ok) throw new Error('Failed to fetch index');
-        const indexData: RunSummary[] = await apiRes.json();
-        setIndex(indexData);
-        if (indexData.length > 0) {
-          const latestRes = await fetch(`/reports/${indexData[0].runId}.json`);
-          if (latestRes.ok) {
-            const latestData: DetailedReport = await latestRes.json();
-            setLatestReport(latestData);
-          }
+        // If static fetch failed and we are not on static site, try the other one just in case
+        if (!isStaticSite) {
+          const fallbackRes = await fetch('/reports/index.json');
+          if (!fallbackRes.ok) throw new Error('Failed to fetch index');
+          const indexData = await fallbackRes.json();
+          setIndex(indexData);
+          if (indexData.length > 0) await fetchLatestReport(indexData[0].runId);
+          return;
         }
-      } else {
-        const indexData: RunSummary[] = await indexRes.json();
-        setIndex(indexData);
-        if (indexData.length > 0) {
-          const latestRes = await fetch(`/reports/${indexData[0].runId}.json`);
-          if (latestRes.ok) {
-            const latestData: DetailedReport = await latestRes.json();
-            setLatestReport(latestData);
-          }
-        }
+        throw new Error('Failed to fetch index');
+      }
+
+      const indexData: RunSummary[] = await indexRes.json();
+      setIndex(indexData);
+
+      if (indexData.length > 0) {
+        await fetchLatestReport(indexData[0].runId);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -113,14 +112,26 @@ export default function App() {
     }
   };
 
+  const fetchLatestReport = async (runId: string) => {
+    try {
+      const latestRes = await fetch(`/reports/${runId}.json`);
+      if (latestRes.ok) {
+        const latestData: DetailedReport = await latestRes.json();
+        setLatestReport(latestData);
+      }
+    } catch (error) {
+      console.error('Error fetching latest report:', error);
+    }
+  };
+
   const handleRunAll = async () => {
-    if (isMonitoring) return;
+    if (isMonitoring || isStaticSite) return;
     try {
       setIsMonitoring(true);
       const res = await fetch('/api/monitor/all', { method: 'POST' });
       
       if (res.status === 405 || res.status === 404) {
-        throw new Error('Monitoring server is not available on this static site. Please use the live dashboard URL.');
+        throw new Error('Monitoring server is not available on this static site. Please use the App URL (Cloud Run) for live monitoring.');
       }
       
       const contentType = res.headers.get('content-type');
@@ -143,13 +154,13 @@ export default function App() {
   };
 
   const handleRunSite = async (siteName: string) => {
-    if (isMonitoring) return;
+    if (isMonitoring || isStaticSite) return;
     try {
       setIsMonitoring(true);
       const res = await fetch(`/api/monitor/site/${siteName}`, { method: 'POST' });
       
       if (res.status === 405 || res.status === 404) {
-        throw new Error('Monitoring server is not available on this static site. Please use the live dashboard URL.');
+        throw new Error('Monitoring server is not available on this static site. Please use the App URL (Cloud Run) for live monitoring.');
       }
 
       const contentType = res.headers.get('content-type');
@@ -248,10 +259,10 @@ export default function App() {
             <Activity size={14} />
             System Usage History
           </div>
-          <div className="flex-1 min-h-[200px] relative">
+          <div className="flex-1 min-h-[220px] relative">
             <div className="absolute inset-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={historyChartData}>
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                <AreaChart data={historyChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorSuccess" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#40c057" stopOpacity={0.3}/>
@@ -300,6 +311,11 @@ export default function App() {
               Server List
             </div>
             <div className="flex items-center gap-3">
+              {isStaticSite && (
+                <span className="text-[10px] text-[#fa5252] bg-[#fa5252]/10 px-2 py-1 rounded border border-[#fa5252]/20">
+                  Static Mode (Read Only)
+                </span>
+              )}
               <button 
                 onClick={() => fetchData(true)}
                 disabled={loading || isMonitoring}
@@ -314,12 +330,13 @@ export default function App() {
               </button>
               <button 
                 onClick={handleRunAll}
-                disabled={isMonitoring}
+                disabled={isMonitoring || isStaticSite}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  isMonitoring 
-                    ? 'bg-white/5 text-[#909296] cursor-not-allowed' 
+                  isMonitoring || isStaticSite
+                    ? 'bg-white/5 text-[#909296] cursor-not-allowed opacity-50' 
                     : 'bg-[#4dabf7]/10 text-[#4dabf7] hover:bg-[#4dabf7]/20'
                 }`}
+                title={isStaticSite ? "Cannot run monitor on static site" : "Run All Monitors"}
               >
                 <RefreshCw size={12} className={isMonitoring ? 'animate-spin' : ''} />
                 {isMonitoring ? 'Running...' : 'Run All'}
@@ -387,12 +404,13 @@ export default function App() {
             {selectedSite && (
               <button 
                 onClick={() => handleRunSite(selectedSite.name)}
-                disabled={isMonitoring}
+                disabled={isMonitoring || isStaticSite}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  isMonitoring 
-                    ? 'bg-white/5 text-[#909296] cursor-not-allowed' 
+                  isMonitoring || isStaticSite
+                    ? 'bg-white/5 text-[#909296] cursor-not-allowed opacity-50' 
                     : 'bg-[#4dabf7]/10 text-[#4dabf7] hover:bg-[#4dabf7]/20'
                 }`}
+                title={isStaticSite ? "Cannot run monitor on static site" : "Run Monitor for this site"}
               >
                 <RefreshCw size={12} className={isMonitoring ? 'animate-spin' : ''} />
                 Run Now
