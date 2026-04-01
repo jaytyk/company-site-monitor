@@ -1,0 +1,9 @@
+{
+  "include": [
+    "**/*"
+  ],
+  "exclude": [
+    ".github/workflows/deploy.yml",
+    ".github/workflows/monitor.yml"
+  ]
+}

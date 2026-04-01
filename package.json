@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "monitor": "node monitor.js"
+    "monitor": "tsx monitor.ts"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { chromium } from 'playwright';
+import { chromium, Browser, BrowserContext, Page } from 'playwright';
 import fs from 'fs-extra';
 import path from 'path';
 import axios from 'axios';
@@ -13,11 +13,47 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+interface SiteConfig {
+  name: string;
+  url: string;
+  waitUntil?: 'load' | 'domcontentloaded' | 'networkidle' | 'commit';
+}
+
+interface MonitorSettings {
+  viewport?: { width: number; height: number };
+  timeoutMs?: number;
+  retentionRuns?: number;
+}
+
+interface MonitorConfig {
+  sites: SiteConfig[];
+  settings?: MonitorSettings;
+}
+
+interface SiteResult {
+  name: string;
+  url: string;
+  status: 'OK' | 'FAIL';
+  error: string | null;
+  screenshot: string | null;
+}
+
+interface MonitorResults {
+  runId: string;
+  timestamp: string;
+  summary: {
+    total: number;
+    success: number;
+    fail: number;
+  };
+  items: SiteResult[];
+}
+
 /**
  * Main monitoring function
  * @param {string|null} targetSiteName - Optional site name to monitor only one site
  */
-export async function runMonitor(targetSiteName = null) {
+export async function runMonitor(targetSiteName: string | null = null): Promise<MonitorResults> {
   const runId = dayjs().format('YYYYMMDD_HHmmss');
   const timestamp = dayjs().toISOString();
   const reportsDir = path.join(__dirname, 'reports');
@@ -29,16 +65,16 @@ export async function runMonitor(targetSiteName = null) {
 
   // Read sites to monitor
   const sitesPath = path.join(__dirname, 'sites.json');
-  let config;
+  let config: MonitorConfig;
   try {
     config = await fs.readJson(sitesPath);
-  } catch (e) {
+  } catch (e: any) {
     throw new Error(`Failed to read sites.json: ${e.message}`);
   }
 
   // Handle both array-only and object-with-settings structures
-  let sites = Array.isArray(config) ? config : config.sites;
-  const settings = Array.isArray(config) ? {} : (config.settings || {});
+  let sites: SiteConfig[] = Array.isArray(config) ? config : config.sites;
+  const settings: MonitorSettings = Array.isArray(config) ? {} : (config.settings || {});
 
   if (!Array.isArray(sites)) {
     console.error('Debug: config content:', config);
@@ -53,7 +89,7 @@ export async function runMonitor(targetSiteName = null) {
     }
   }
 
-  const results = {
+  const results: MonitorResults = {
     runId,
     timestamp,
     summary: {
@@ -66,8 +102,8 @@ export async function runMonitor(targetSiteName = null) {
 
   console.log(`Starting monitor run: ${runId} ${targetSiteName ? `(Target: ${targetSiteName})` : ''}`);
 
-  const browser = await chromium.launch();
-  const context = await browser.newContext({
+  const browser: Browser = await chromium.launch();
+  const context: BrowserContext = await browser.newContext({
     viewport: settings.viewport || { width: 1280, height: 720 }
   });
 
@@ -75,10 +111,10 @@ export async function runMonitor(targetSiteName = null) {
 
   // Process all sites in parallel simultaneously
   await Promise.all(sites.map(async (site) => {
-    const page = await context.newPage();
+    const page: Page = await context.newPage();
     console.log(`Monitoring: ${site.name} (${site.url})`);
     
-    const item = {
+    const item: SiteResult = {
       name: site.name,
       url: site.url,
       status: 'OK',
@@ -94,12 +130,18 @@ export async function runMonitor(targetSiteName = null) {
       });
       
       // Capture screenshot
-      const screenshotPath = `screenshots/${runId}/${site.name.replace(/\s+/g, '_')}.png`;
-      await page.screenshot({ path: path.join(__dirname, screenshotPath) });
-      item.screenshot = screenshotPath;
+      // Fix: Store path relative to screenshots directory for easier serving
+      const screenshotFilename = `${site.name.replace(/\s+/g, '_')}.png`;
+      const screenshotRelativePath = `${runId}/${screenshotFilename}`;
+      const screenshotFullPath = path.join(__dirname, 'screenshots', screenshotRelativePath);
+      
+      await fs.ensureDir(path.dirname(screenshotFullPath));
+      await page.screenshot({ path: screenshotFullPath });
+      
+      item.screenshot = screenshotRelativePath;
       
       results.summary.success++;
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to monitor ${site.name}: ${error.message}`);
       item.status = 'FAIL';
       item.error = error.message;
@@ -118,7 +160,7 @@ export async function runMonitor(targetSiteName = null) {
 
   // Update index.json
   const indexPath = path.join(reportsDir, 'index.json');
-  let index = [];
+  let index: any[] = [];
   if (await fs.pathExists(indexPath)) {
     index = await fs.readJson(indexPath);
   }
@@ -142,7 +184,7 @@ export async function runMonitor(targetSiteName = null) {
 /**
  * Send notifications to Slack and Teams
  */
-async function sendNotifications(results) {
+async function sendNotifications(results: MonitorResults) {
   const { SLACK_WEBHOOK_URL, TEAMS_WEBHOOK_URL } = process.env;
   
   const message = `*Site Monitor Report (${results.runId})*\n` +
@@ -155,7 +197,7 @@ async function sendNotifications(results) {
     try {
       await axios.post(SLACK_WEBHOOK_URL, { text: message });
       console.log('Slack notification sent.');
-    } catch (e) {
+    } catch (e: any) {
       console.error('Failed to send Slack notification:', e.message);
     }
   }
@@ -179,7 +221,7 @@ async function sendNotifications(results) {
         }]
       });
       console.log('Teams notification sent.');
-    } catch (e) {
+    } catch (e: any) {
       console.error('Failed to send Teams notification:', e.message);
     }
   }

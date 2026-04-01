@@ -265,6 +265,18 @@ export default function App() {
             </div>
             <div className="flex items-center gap-3">
               <button 
+                onClick={() => fetchData(true)}
+                disabled={loading || isMonitoring}
+                className={`p-1.5 rounded-full transition-all ${
+                  loading || isMonitoring
+                    ? 'text-[#909296] cursor-not-allowed'
+                    : 'text-[#4dabf7] hover:bg-[#4dabf7]/10'
+                }`}
+                title="Refresh Data"
+              >
+                <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+              </button>
+              <button 
                 onClick={handleRunAll}
                 disabled={isMonitoring}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
@@ -356,7 +368,7 @@ export default function App() {
               <div className="aspect-video bg-black/40 rounded-lg overflow-hidden border border-white/5 mb-4 group relative">
                 {selectedSite.screenshot ? (
                   <img 
-                    src={`/${selectedSite.screenshot}`} 
+                    src={`/screenshots/${selectedSite.screenshot}`} 
                     alt={selectedSite.name}
                     className="w-full h-full object-cover"
                   />
