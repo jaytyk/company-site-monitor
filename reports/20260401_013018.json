@@ -1,0 +1,109 @@
+{
+  "runId": "20260401_013018",
+  "timestamp": "2026-04-01T01:30:18.776Z",
+  "summary": {
+    "total": 14,
+    "success": 14,
+    "fail": 0
+  },
+  "items": [
+    {
+      "name": "Nexon IP",
+      "url": "https://ip.nexon.com",
+      "status": "OK",
+      "error": null,
+      "screenshot": "20260401_013018/Nexon_IP.png"
+    },
+    {
+      "name": "Nexon HQ",
+      "url": "https://www.nexon-hq.com/",
+      "status": "OK",
+      "error": null,
+      "screenshot": "20260401_013018/Nexon_HQ.png"
+    },
+    {
+      "name": "Nexon Space",
+      "url": "https://nexonspace.co.kr",
+      "status": "OK",
+      "error": null,
+      "screenshot": "20260401_013018/Nexon_Space.png"
+    },
+    {
+      "name": "Nexon Computer Museum",
+      "url": "https://computermuseum.nexon.com",
+      "status": "OK",
+      "error": null,
+      "screenshot": "20260401_013018/Nexon_Computer_Museum.png"
+    },
+    {
+      "name": "Nexon Foundation",
+      "url": "https://www.nexonfoundation.org/",
+      "status": "OK",
+      "error": null,
+      "screenshot": "20260401_013018/Nexon_Foundation.png"
+    },
+    {
+      "name": "Nexon Pressroom",
+      "url": "https://pressroom.nexon.com/",
+      "status": "OK",
+      "error": null,
+      "screenshot": "20260401_013018/Nexon_Pressroom.png"
+    },
+    {
+      "name": "Nexon Company",
+      "url": "https://company.nexon.com/ko/",
+      "status": "OK",
+      "error": null,
+      "screenshot": "20260401_013018/Nexon_Company.png"
+    },
+    {
+      "name": "Nexon Networks",
+      "url": "https://nexon-networks.com/",
+      "status": "OK",
+      "error": null,
+      "screenshot": "20260401_013018/Nexon_Networks.png"
+    },
+    {
+      "name": "NDC",
+      "url": "https://ndc.nexon.com",
+      "status": "OK",
+      "error": null,
+      "screenshot": "20260401_013018/NDC.png"
+    },
+    {
+      "name": "Nexon Hero",
+      "url": "https://www.nexonfoundation.org/nexonhero",
+      "status": "OK",
+      "error": null,
+      "screenshot": "20260401_013018/Nexon_Hero.png"
+    },
+    {
+      "name": "NYPC",
+      "url": "https://www.nypc.co.kr",
+      "status": "OK",
+      "error": null,
+      "screenshot": "20260401_013018/NYPC.png"
+    },
+    {
+      "name": "select all",
+      "url": "https://www.selectall.global/ko/about",
+      "status": "OK",
+      "error": null,
+      "screenshot": "20260401_013018/select_all.png"
+    },
+    {
+      "name": "Nexon Brand",
+      "url": "https://brand.nexon.com/",
+      "status": "OK",
+      "error": null,
+      "screenshot": "20260401_013018/Nexon_Brand.png"
+    },
+    {
+      "name": "Nexon Blog",
+      "url": "https://blog.nexon.com/",
+      "status": "OK",
+      "error": null,
+      "screenshot": "20260401_013018/Nexon_Blog.png"
+    }
+  ]
+}
