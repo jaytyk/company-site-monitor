@@ -82,28 +82,36 @@ export default function App() {
     try {
       if (showLoading) setLoading(true);
       
-      // Determine the best URL based on environment to avoid unnecessary 404s
-      const indexUrl = isStaticSite ? '/reports/index.json' : '/api/reports/index';
+      // Try fetching from static reports directory first (relative path for GitHub Pages compatibility)
+      // We try 'reports/index.json' which Vite will serve from the public folder
+      let indexData: RunSummary[] = [];
       
-      const indexRes = await fetch(indexUrl);
-      if (!indexRes.ok) {
-        // If static fetch failed and we are not on static site, try the other one just in case
-        if (!isStaticSite) {
-          const fallbackRes = await fetch('/reports/index.json');
-          if (!fallbackRes.ok) throw new Error('Failed to fetch index');
-          const indexData = await fallbackRes.json();
-          setIndex(indexData);
-          if (indexData.length > 0) await fetchLatestReport(indexData[0].runId);
-          return;
+      try {
+        const staticRes = await fetch('reports/index.json');
+        if (staticRes.ok) {
+          indexData = await staticRes.json();
+        } else if (!isStaticSite) {
+          // Fallback to API if not on a static site
+          const apiRes = await fetch('/api/reports/index');
+          if (apiRes.ok) {
+            indexData = await apiRes.json();
+          }
         }
-        throw new Error('Failed to fetch index');
+      } catch (e) {
+        if (!isStaticSite) {
+          const apiRes = await fetch('/api/reports/index');
+          if (apiRes.ok) {
+            indexData = await apiRes.json();
+          }
+        }
       }
 
-      const indexData: RunSummary[] = await indexRes.json();
-      setIndex(indexData);
-
       if (indexData.length > 0) {
+        setIndex(indexData);
         await fetchLatestReport(indexData[0].runId);
+      } else {
+        // If no data found, don't throw error yet, just set empty index
+        setIndex([]);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -114,7 +122,7 @@ export default function App() {
 
   const fetchLatestReport = async (runId: string) => {
     try {
-      const latestRes = await fetch(`/reports/${runId}.json`);
+      const latestRes = await fetch(`reports/${runId}.json`);
       if (latestRes.ok) {
         const latestData: DetailedReport = await latestRes.json();
         setLatestReport(latestData);
@@ -260,25 +268,29 @@ export default function App() {
             System Usage History
           </div>
           <div className="flex-1 min-h-[220px] relative">
-            <div className="absolute inset-0">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <AreaChart data={historyChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorSuccess" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#40c057" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#40c057" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="time" />
-                  <YAxis hide />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#25262b', border: '1px solid #373a40', borderRadius: '8px' }}
-                    itemStyle={{ color: '#fff' }}
-                  />
-                  <Area type="monotone" dataKey="success" stroke="#40c057" fillOpacity={1} fill="url(#colorSuccess)" />
-                </AreaChart>
-              </ResponsiveContainer>
+            <div className="absolute inset-0 flex items-center justify-center">
+              {historyChartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <AreaChart data={historyChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorSuccess" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#40c057" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#40c057" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="time" />
+                    <YAxis hide />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#25262b', border: '1px solid #373a40', borderRadius: '8px' }}
+                      itemStyle={{ color: '#fff' }}
+                    />
+                    <Area type="monotone" dataKey="success" stroke="#40c057" fillOpacity={1} fill="url(#colorSuccess)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="text-[#909296] text-xs font-mono opacity-50">No history data available</div>
+              )}
             </div>
           </div>
           <div className="mt-4 grid grid-cols-3 gap-2">
@@ -422,7 +434,7 @@ export default function App() {
               <div className="aspect-video bg-black/40 rounded-lg overflow-hidden border border-white/5 mb-4 group relative">
                 {selectedSite.screenshot ? (
                   <img 
-                    src={`/screenshots/${selectedSite.screenshot}`} 
+                    src={`screenshots/${selectedSite.screenshot}`} 
                     alt={selectedSite.name}
                     className="w-full h-full object-cover"
                   />
