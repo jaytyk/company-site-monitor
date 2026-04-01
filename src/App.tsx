@@ -80,16 +80,30 @@ export default function App() {
   const fetchData = async (showLoading = true) => {
     try {
       if (showLoading) setLoading(true);
-      const indexRes = await fetch('/api/reports/index');
-      if (!indexRes.ok) throw new Error('Failed to fetch index');
-      const indexData: RunSummary[] = await indexRes.json();
-      setIndex(indexData);
-
-      if (indexData.length > 0) {
-        const latestRes = await fetch(`/reports/${indexData[0].runId}.json`);
-        if (latestRes.ok) {
-          const latestData: DetailedReport = await latestRes.json();
-          setLatestReport(latestData);
+      // Try static path first as it works on both Cloud Run and GitHub Pages
+      const indexRes = await fetch('/reports/index.json');
+      if (!indexRes.ok) {
+        // Fallback to API if static fails
+        const apiRes = await fetch('/api/reports/index');
+        if (!apiRes.ok) throw new Error('Failed to fetch index');
+        const indexData: RunSummary[] = await apiRes.json();
+        setIndex(indexData);
+        if (indexData.length > 0) {
+          const latestRes = await fetch(`/reports/${indexData[0].runId}.json`);
+          if (latestRes.ok) {
+            const latestData: DetailedReport = await latestRes.json();
+            setLatestReport(latestData);
+          }
+        }
+      } else {
+        const indexData: RunSummary[] = await indexRes.json();
+        setIndex(indexData);
+        if (indexData.length > 0) {
+          const latestRes = await fetch(`/reports/${indexData[0].runId}.json`);
+          if (latestRes.ok) {
+            const latestData: DetailedReport = await latestRes.json();
+            setLatestReport(latestData);
+          }
         }
       }
     } catch (error) {
@@ -104,15 +118,25 @@ export default function App() {
     try {
       setIsMonitoring(true);
       const res = await fetch('/api/monitor/all', { method: 'POST' });
+      
+      if (res.status === 405 || res.status === 404) {
+        throw new Error('Monitoring server is not available on this static site. Please use the live dashboard URL.');
+      }
+      
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Server returned an invalid response. This might be a static site without a backend.');
+      }
+
       const data = await res.json();
       if (data.success) {
         await fetchData(false);
       } else {
         alert('Monitor failed: ' + data.error);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error running monitor:', error);
-      alert('Error running monitor');
+      alert(error.message || 'Error running monitor');
     } finally {
       setIsMonitoring(false);
     }
@@ -123,6 +147,16 @@ export default function App() {
     try {
       setIsMonitoring(true);
       const res = await fetch(`/api/monitor/site/${siteName}`, { method: 'POST' });
+      
+      if (res.status === 405 || res.status === 404) {
+        throw new Error('Monitoring server is not available on this static site. Please use the live dashboard URL.');
+      }
+
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Server returned an invalid response. This might be a static site without a backend.');
+      }
+
       const data = await res.json();
       if (data.success) {
         await fetchData(false);
@@ -134,9 +168,9 @@ export default function App() {
       } else {
         alert('Monitor failed: ' + data.error);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error running monitor:', error);
-      alert('Error running monitor');
+      alert(error.message || 'Error running monitor');
     } finally {
       setIsMonitoring(false);
     }
@@ -214,25 +248,27 @@ export default function App() {
             <Activity size={14} />
             System Usage History
           </div>
-          <div className="flex-1 min-h-[200px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={historyChartData}>
-                <defs>
-                  <linearGradient id="colorSuccess" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#40c057" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#40c057" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="time" />
-                <YAxis hide />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#25262b', border: '1px solid #373a40', borderRadius: '8px' }}
-                  itemStyle={{ color: '#fff' }}
-                />
-                <Area type="monotone" dataKey="success" stroke="#40c057" fillOpacity={1} fill="url(#colorSuccess)" />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div className="flex-1 min-h-[200px] relative">
+            <div className="absolute inset-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={historyChartData}>
+                  <defs>
+                    <linearGradient id="colorSuccess" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#40c057" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#40c057" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="time" />
+                  <YAxis hide />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#25262b', border: '1px solid #373a40', borderRadius: '8px' }}
+                    itemStyle={{ color: '#fff' }}
+                  />
+                  <Area type="monotone" dataKey="success" stroke="#40c057" fillOpacity={1} fill="url(#colorSuccess)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </div>
           <div className="mt-4 grid grid-cols-3 gap-2">
             <div className="p-3 bg-white/5 rounded-lg text-center">

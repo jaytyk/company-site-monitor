@@ -19,8 +19,8 @@ async function startServer() {
   app.use(express.json());
 
   // Serve monitoring reports and screenshots
-  app.use('/reports', express.static(path.join(__dirname, 'reports')));
-  app.use('/screenshots', express.static(path.join(__dirname, 'screenshots')));
+  app.use('/reports', express.static(path.join(__dirname, 'public', 'reports')));
+  app.use('/screenshots', express.static(path.join(__dirname, 'public', 'screenshots')));
 
   // API routes
   app.get("/api/health", (req, res) => {
@@ -53,7 +53,7 @@ async function startServer() {
   app.get("/api/reports/index", async (req, res) => {
     try {
       const fs = await import('fs-extra');
-      const indexPath = path.join(__dirname, 'reports', 'index.json');
+      const indexPath = path.join(__dirname, 'public', 'reports', 'index.json');
       if (await fs.default.pathExists(indexPath)) {
         const index = await fs.default.readJson(indexPath);
         res.json(index);

@@ -65,7 +65,7 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
           # 새 파일들을 스테이징에 추가
-          git add reports/ screenshots/
+          git add public/reports/ public/screenshots/
           
           # 변경사항이 있을 때만 커밋 및 푸시
           if ! git diff --cached --quiet; then

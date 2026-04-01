@@ -56,8 +56,8 @@ interface MonitorResults {
 export async function runMonitor(targetSiteName: string | null = null): Promise<MonitorResults> {
   const runId = dayjs().format('YYYYMMDD_HHmmss');
   const timestamp = dayjs().toISOString();
-  const reportsDir = path.join(__dirname, 'reports');
-  const screenshotsDir = path.join(__dirname, 'screenshots', runId);
+  const reportsDir = path.join(__dirname, 'public', 'reports');
+  const screenshotsDir = path.join(__dirname, 'public', 'screenshots', runId);
 
   // Ensure directories exist
   await fs.ensureDir(reportsDir);
@@ -133,7 +133,7 @@ export async function runMonitor(targetSiteName: string | null = null): Promise<
       // Fix: Store path relative to screenshots directory for easier serving
       const screenshotFilename = `${site.name.replace(/\s+/g, '_')}.png`;
       const screenshotRelativePath = `${runId}/${screenshotFilename}`;
-      const screenshotFullPath = path.join(__dirname, 'screenshots', screenshotRelativePath);
+      const screenshotFullPath = path.join(__dirname, 'public', 'screenshots', screenshotRelativePath);
       
       await fs.ensureDir(path.dirname(screenshotFullPath));
       await page.screenshot({ path: screenshotFullPath });
